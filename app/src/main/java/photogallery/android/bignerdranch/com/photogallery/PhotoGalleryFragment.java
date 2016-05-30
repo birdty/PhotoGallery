@@ -20,14 +20,12 @@ public class PhotoGalleryFragment extends Fragment {
     GridView gridView;
     ArrayList<GalleryItem> items;
 
-
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         new FetchItemsTask().execute();
     }
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -68,6 +66,4 @@ public class PhotoGalleryFragment extends Fragment {
             setupAdapter();
         }
     }
-
-
 }
