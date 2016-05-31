@@ -1,7 +1,9 @@
 package photogallery.android.bignerdranch.com.photogallery;
 
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -9,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
+import android.widget.ImageView;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,12 +22,38 @@ public class PhotoGalleryFragment extends Fragment {
 
     GridView gridView;
     ArrayList<GalleryItem> items;
+    ThumbnailDownloader<ImageView> thumbnailThread;
 
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         new FetchItemsTask().execute();
+
+        thumbnailThread = new ThumbnailDownloader<ImageView>(new Handler());
+
+        thumbnailThread.setListener(new ThumbnailDownloader.Listener<ImageView>() {
+            public void onThumbnailDownloaded(ImageView imageView, Bitmap thumbnail) {
+                if ( isVisible() ) {
+                    imageView.setImageBitmap(thumbnail);
+                }
+            }
+        }
+        );
+
+        thumbnailThread.start();
+
+        thumbnailThread.getLooper();
+
+        Log.i(TAG, "Background thread started");
+
+    }
+
+    @Override
+    public void onDestroy()
+    {
+        super.onDestroy();
+        thumbnailThread.clearQueue();
     }
 
     @Override
@@ -45,7 +74,7 @@ public class PhotoGalleryFragment extends Fragment {
 
         if ( items != null )
         {
-            gridView.setAdapter(new ArrayAdapter<GalleryItem>(getActivity(), android.R.layout.simple_gallery_item, items));
+            gridView.setAdapter( new GalleryItemAdapter(items));
         }
         else
         {
@@ -53,7 +82,8 @@ public class PhotoGalleryFragment extends Fragment {
         }
     }
 
-    private class FetchItemsTask extends AsyncTask<Void, Void, ArrayList<GalleryItem>> {
+    private class FetchItemsTask extends AsyncTask<Void, Void, ArrayList<GalleryItem>>
+    {
         @Override
         protected ArrayList<GalleryItem> doInBackground(Void... params)
         {
@@ -64,6 +94,32 @@ public class PhotoGalleryFragment extends Fragment {
         {
             items = newItems;
             setupAdapter();
+        }
+    }
+
+    private class GalleryItemAdapter extends ArrayAdapter<GalleryItem> {
+        public GalleryItemAdapter(ArrayList<GalleryItem> items)
+        {
+            super(getActivity(), 0, items);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent)
+        {
+            if ( convertView == null )
+            {
+                convertView = getActivity().getLayoutInflater().inflate(R.layout.gallery_item, parent, false);
+            }
+
+            ImageView imageView = (ImageView) convertView.findViewById(R.id.gallery_item_imageView);
+
+            imageView.setImageResource(R.drawable.brian_up_close);
+
+            GalleryItem item = getItem(position);
+
+            thumbnailThread.queueThumbnail(imageView, item.getUrl());
+
+            return convertView;
         }
     }
 }
