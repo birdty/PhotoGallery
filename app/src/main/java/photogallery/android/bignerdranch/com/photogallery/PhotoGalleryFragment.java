@@ -6,6 +6,7 @@ import android.app.SearchManager;
 import android.app.SearchableInfo;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -57,19 +58,26 @@ public class PhotoGalleryFragment extends Fragment {
             SearchableInfo searchInfo = searchManager.getSearchableInfo(name);
 
             searchView.setSearchableInfo(searchInfo);
-
         }
     }
 
     @Override
+    @TargetApi(11)
     public boolean onOptionsItemSelected(MenuItem item)
     {
         switch ( item.getItemId() )
         {
             case R.id.menu_item_search:
                 getActivity().onSearchRequested();
+                return true;
+            case R.id.menu_item_toggle_polling:
+                boolean shouldStartAlarm = !PollService.isServiceAlarmOn(getActivity());
+                PollService.setServiceAlarm(getActivity(), shouldStartAlarm);
 
-
+                if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB )
+                {
+                    getActivity().invalidateOptionsMenu();
+                }
 
                 return true;
             case R.id.menu_item_clear:
@@ -79,6 +87,23 @@ public class PhotoGalleryFragment extends Fragment {
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu)
+    {
+        super.onPrepareOptionsMenu(menu);
+
+        MenuItem toggleItem = menu.findItem(R.id.menu_item_toggle_polling);
+
+        if ( PollService.isServiceAlarmOn(getActivity()) )
+        {
+            toggleItem.setTitle(R.string.stop_polling);
+        }
+        else
+        {
+            toggleItem.setTitle(R.string.start_polling);
         }
     }
 
