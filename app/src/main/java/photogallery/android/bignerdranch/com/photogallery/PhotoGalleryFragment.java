@@ -29,7 +29,7 @@ import android.widget.ImageView;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class PhotoGalleryFragment extends Fragment {
+public class PhotoGalleryFragment extends VisibleFragment {
 
     public static final String TAG = "PhotoGalleryFragment";
 
