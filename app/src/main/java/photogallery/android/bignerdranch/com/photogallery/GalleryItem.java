@@ -5,6 +5,15 @@ public class GalleryItem {
     private String caption;
     private String id;
     private String url;
+    private String owner;
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
 
     public String toString()
     {
@@ -33,5 +42,10 @@ public class GalleryItem {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getPhotoPageUrl()
+    {
+        return "https://www.flickr.com/photos/" + owner + "/" + id;
     }
 }
